@@ -38,7 +38,7 @@ function completeAccess(result, navigate) {
           <UserManagementPage v-else-if="activeView === 'users'" @announce="announce" />
           <UserPage v-else-if="activeView === 'user'" @announce="announce" />
           <UserAccountPage v-else-if="activeView === 'account'" :profile="profile" @save="saveProfile" @cancel="navigate('user')" />
-          <AuthPage v-else @authenticated="(result) => completeAccess(result, navigate)" @announce="announce" />
+          <AuthPage v-else :profile="profile" @authenticated="(result) => completeAccess(result, navigate)" @announce="announce" />
         </Transition>
 
         <!-- Legacy page markup removed from the rendered shell. -->
@@ -60,5 +60,4 @@ function completeAccess(result, navigate) {
     <div v-if="notice" class="toast">{{ notice }}</div>
   </div>
 </template>
-
 

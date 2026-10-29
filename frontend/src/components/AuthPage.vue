@@ -1,11 +1,19 @@
 <script setup>
 import { ref } from 'vue'
 
+const props = defineProps({
+  profile: {
+    type: Object,
+    required: true,
+  },
+})
+
 const mode = ref('login')
 const transitionName = ref('auth-forward')
 const name = ref('')
 const email = ref('')
 const phone = ref('')
+const otpPhone = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
 const stage = ref('credentials')
@@ -33,13 +41,18 @@ function submitAccess() {
   if (mode.value !== 'admin') {
     otp.value = ''
     otpError.value = ''
+    otpPhone.value = mode.value === 'register' ? phone.value.trim() : props.profile.phone.trim()
     transitionName.value = 'auth-forward'
     stage.value = 'otp'
-    emit('announce', `Demo verification code sent to ${email.value.trim()}.`)
+    emit('announce', `Demo verification code sent to ${otpPhone.value}.`)
     return
   }
 
   completeAccess()
+}
+
+function continueWithGoogle() {
+  emit('announce', 'Google sign-in is not configured in this prototype.')
 }
 
 function normalizeOtp(event) {
@@ -73,7 +86,7 @@ function returnToCredentials() {
 function resendOtp() {
   otp.value = ''
   otpError.value = ''
-  emit('announce', `Demo verification code resent to ${email.value.trim()}.`)
+  emit('announce', `Demo verification code resent to ${otpPhone.value}.`)
 }
 </script>
 
@@ -100,7 +113,7 @@ function resendOtp() {
             <input id="access-email" v-model="email" type="email" autocomplete="email" placeholder="name@example.com" required />
 
             <template v-if="mode === 'register'">
-              <label for="register-phone">Phone number</label>
+              <label for="register-phone">Mobile number</label>
               <input id="register-phone" v-model="phone" type="tel" autocomplete="tel" placeholder="+91 98765 43210" required />
             </template>
 
@@ -114,6 +127,10 @@ function resendOtp() {
 
             <button class="primary-button auth-submit" type="submit">{{ mode === 'register' ? 'Create account' : 'Sign in' }} <span>→</span></button>
           </form>
+          <template v-if="mode === 'login'">
+            <div class="auth-divider"><span>or</span></div>
+            <button class="auth-google" type="button" @click="continueWithGoogle"><span aria-hidden="true">G</span> Continue with Google</button>
+          </template>
           <button v-if="mode === 'login'" class="auth-cta" type="button" @click="setMode('register')">New to Parkline? <span>Create an account</span></button>
           <button v-else-if="mode === 'register'" class="auth-cta" type="button" @click="setMode('login')">Already have an account? <span>Sign in</span></button>
           <p class="auth-note">Prototype only. Sign-in details are not sent to a server.</p>
@@ -121,8 +138,8 @@ function resendOtp() {
         <div v-else :key="`${mode}-otp`" class="auth-content">
           <button class="auth-back" type="button" @click="returnToCredentials"><span aria-hidden="true">←</span> Back</button>
           <p class="eyebrow">PARKLINE · VERIFY</p>
-          <h1>Check your email</h1>
-          <p class="auth-intro">Enter the 6-digit verification code sent to <strong>{{ email.trim() }}</strong>.</p>
+          <h1>Check your phone</h1>
+          <p class="auth-intro">Enter the 6-digit verification code sent by SMS to <strong>{{ otpPhone }}</strong>.</p>
 
           <form class="auth-form otp-form" @submit.prevent="verifyOtp">
             <label for="access-otp">Verification code</label>
